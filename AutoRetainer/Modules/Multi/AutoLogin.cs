@@ -19,6 +19,7 @@ namespace AutoRetainer.Modules.Multi;
 
 internal unsafe class AutoLogin
 {
+    private static HasLoggedOut = false;
     static AutoLogin? instance = null;
     internal static AutoLogin Instance
     {
@@ -47,7 +48,13 @@ internal unsafe class AutoLogin
     AutoLogin()
     {
         Svc.Framework.Update += OnFrameworkUpdate;
+        Svc.ClientState.Logout += DisableFirstTimeAutoLog;
         PluginLog.Information("Autologin module initialized");
+    }
+
+    internal void DisableFirstTimeAutoLog()
+    {
+        HasLoggedOut = true;
     }
 
     internal void Logoff()
@@ -164,6 +171,9 @@ internal unsafe class AutoLogin
             return;
         }
         if (!sw.IsRunning) sw.Restart();
+
+        if (!HasLoggedOut && Utils.CanAutoLogin())
+            Login(data.World, data.Name, data.ServiceAccount);
 
         /*if (Svc.KeyState[VirtualKey.SHIFT])
         {
